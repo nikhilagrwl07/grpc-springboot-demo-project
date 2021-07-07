@@ -10,7 +10,7 @@ import com.movieservice.grpcflix.user.UserGenreUpdateRequest;
 import com.movieservice.grpcflix.user.UserResponse;
 import com.movieservice.grpcflix.user.UserSearchRequest;
 import com.movieservice.grpcflix.user.UserServiceGrpc;
-import net.devh.springboot.autoconfigure.grpc.client.GrpcClient;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,10 +20,10 @@ import java.util.stream.Collectors;
 public class UserMovieService {
 
     @GrpcClient("user-service")
-    private UserServiceGrpc.UserServiceStub userStub;
+    private UserServiceGrpc.UserServiceBlockingStub userStub;
 
     @GrpcClient("movie-service")
-    private MovieServiceGrpc.MovieServiceStub movieStub;
+    private MovieServiceGrpc.MovieServiceBlockingStub movieStub;
 
     public List<RecommendedMovie> getUserMovieSuggestions(String loginId) {
         UserSearchRequest userSearchRequest = UserSearchRequest.newBuilder().setLoginId(loginId).build();
