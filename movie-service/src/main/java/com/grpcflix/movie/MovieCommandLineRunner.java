@@ -14,15 +14,14 @@ public class MovieCommandLineRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        Movie firstMovie = new Movie("DRAMA", 1994, 1,  9.3, "The Shawshank Redemption" );
+        Movie secondMovie = new Movie("ACTION",  2010, 5, 8.8, "Inception");
+        Movie thirdMovie = new Movie("ACTION", 2003, 9, 8.4, "Oldboy");
+        Movie fourthMovie = new Movie("DRAMA", 1972, 2, 9.2, "The godfather");
 
-        Movie firstMovie = new Movie(1, "The Shawshank Redemption", 1994, 9.3, "DRAMA");
-        Movie fourthMovie = new Movie(2, "The godfather", 1972, 9.2, "DRAMA");
-        Movie secondMovie = new Movie(5, "Inception", 2010, 8.8, "ACTION");
-        Movie thirdMovie = new Movie(9, "Oldboy", 2003, 8.4, "ACTION");
-
-        movieRepository.save(firstMovie);
-        movieRepository.save(fourthMovie);
-        movieRepository.save(secondMovie);
-        movieRepository.save(thirdMovie);
+        movieRepository.save(firstMovie).block();
+        movieRepository.save(secondMovie).block();
+        movieRepository.save(thirdMovie).block();
+        movieRepository.save(fourthMovie).block();
     }
 }

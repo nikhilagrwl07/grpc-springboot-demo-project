@@ -1,12 +1,11 @@
 package com.grpcflix.movie.repository;
 
 import com.grpcflix.movie.entity.Movie;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.cassandra.repository.ReactiveCassandraRepository;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 @Repository
-public interface MovieRepository extends JpaRepository<Movie, Integer> {
-    List<Movie> getMovieByGenreOrderByYearDesc(String genre);
+public interface MovieRepository extends ReactiveCassandraRepository<Movie, String> {
+    Flux<Movie> getMovieByGenreOrderByYearDesc(String genre);
 }

@@ -14,10 +14,10 @@ public class UserCommandLineRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        User nikhil = new User("nik", "Nikhil", "ACTION");
-        User ritu = new User("ritu07", "Ritu", "DRAMA");
+        User nikhil = new User("nik", "ACTION", "Nikhil");
+        User ritu = new User("ritu07", "DRAMA", "Ritu");
 
-        userRepository.save(nikhil);
-        userRepository.save(ritu);
+        userRepository.save(nikhil).block();
+        userRepository.save(ritu).block();
     }
 }

@@ -4,20 +4,25 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
+import org.springframework.data.cassandra.core.mapping.Column;
+import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
+import org.springframework.data.cassandra.core.mapping.Table;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Data
-@Entity
+@Table(value = "user_by_login")
 public class User {
-    @Id
+    @PrimaryKeyColumn(name = "login", ordinal = 0,type = PrimaryKeyType.PARTITIONED)
     private String login;
 
-    private String name;
-
+    @PrimaryKeyColumn(name = "genre", ordinal = 1,type = PrimaryKeyType.CLUSTERED)
     private String genre;
+
+    @Column("name")
+    private String name;
 }
+

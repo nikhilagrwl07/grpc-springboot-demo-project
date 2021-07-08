@@ -1,9 +1,13 @@
 package com.grpcflix.user.repository;
 
 import com.grpcflix.user.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
+//import com.grpcflix.user.entity.UserPrimaryKey;
+import org.springframework.data.cassandra.repository.ReactiveCassandraRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 
 @Repository
-public interface UserRepository extends JpaRepository<User, String> {
+public interface UserRepository extends ReactiveCassandraRepository<User, String> {
+    Mono<User> findByLogin(String loginId);
+    Mono<User> deleteByLoginAndGenre(String loginId, String genre);
 }

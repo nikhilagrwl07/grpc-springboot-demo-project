@@ -8,9 +8,8 @@ import com.movieservice.grpcflix.movie.MovieServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @GrpcService
 public class MovieService extends MovieServiceGrpc.MovieServiceImplBase {
@@ -20,15 +19,18 @@ public class MovieService extends MovieServiceGrpc.MovieServiceImplBase {
 
     @Override
     public void getMovies(MovieSearchRequest request, StreamObserver<MovieSearchResponse> responseObserver) {
-        List<MovieDto> movieDtoList = this.repository.getMovieByGenreOrderByYearDesc(request.getGenre().toString())
-                .stream()
+        this.repository.getMovieByGenreOrderByYearDesc(request.getGenre().toString())
+                .subscribeOn(Schedulers.boundedElastic())
                 .map(movie -> MovieDto.newBuilder()
                         .setTitle(movie.getTitle())
                         .setYear(movie.getYear())
                         .setRating(movie.getRating())
                         .build())
-                .collect(Collectors.toList());
-        responseObserver.onNext(MovieSearchResponse.newBuilder().addAllMovie(movieDtoList).build());
-        responseObserver.onCompleted();
+                .collectList()
+                .flatMap(movieDtos -> {
+                    MovieSearchResponse movieSearchResponse = MovieSearchResponse.newBuilder().addAllMovie(movieDtos).build();
+                    return Mono.just(movieSearchResponse);
+                })
+                .subscribe(responseObserver::onNext, responseObserver::onError, responseObserver::onCompleted);
     }
 }
