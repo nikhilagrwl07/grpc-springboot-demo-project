@@ -1,8 +1,8 @@
-package com.grpcfix.aggregator.controller;
+package com.grpcflix.aggregator.controller;
 
-import com.grpcfix.aggregator.dto.RecommendedMovie;
-import com.grpcfix.aggregator.dto.UserGenre;
-import com.grpcfix.aggregator.service.UserMovieService;
+import com.grpcflix.aggregator.dto.RecommendedMovie;
+import com.grpcflix.aggregator.dto.UserGenre;
+import com.grpcflix.aggregator.service.UserMovieService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

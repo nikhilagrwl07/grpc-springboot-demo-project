@@ -1,4 +1,4 @@
-Following tech stack used in projector
+Following tech stack used in project
 
  - springboot 
  - maven

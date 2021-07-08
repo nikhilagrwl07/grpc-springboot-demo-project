@@ -1,7 +1,7 @@
-package com.grpcfix.aggregator.service;
+package com.grpcflix.aggregator.service;
 
-import com.grpcfix.aggregator.dto.RecommendedMovie;
-import com.grpcfix.aggregator.dto.UserGenre;
+import com.grpcflix.aggregator.dto.RecommendedMovie;
+import com.grpcflix.aggregator.dto.UserGenre;
 import com.movieservice.grpcflix.common.Genre;
 import com.movieservice.grpcflix.movie.MovieSearchRequest;
 import com.movieservice.grpcflix.movie.MovieSearchResponse;

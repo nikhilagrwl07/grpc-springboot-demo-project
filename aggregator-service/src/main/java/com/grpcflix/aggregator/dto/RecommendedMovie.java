@@ -1,4 +1,4 @@
-package com.grpcfix.aggregator.dto;
+package com.grpcflix.aggregator.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

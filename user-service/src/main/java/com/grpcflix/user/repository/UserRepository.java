@@ -9,5 +9,5 @@ import reactor.core.publisher.Mono;
 @Repository
 public interface UserRepository extends ReactiveCassandraRepository<User, String> {
     Mono<User> findByLogin(String loginId);
-    Mono<User> deleteByLoginAndGenre(String loginId, String genre);
+    Mono<Boolean> deleteByLogin(String loginId);
 }

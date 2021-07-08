@@ -1,6 +1,7 @@
 package com.grpcflix.user.service;
 
 //import com.grpcflix.user.entity.UserPrimaryKey;
+
 import com.grpcflix.user.repository.UserRepository;
 import com.movieservice.grpcflix.common.Genre;
 import com.movieservice.grpcflix.user.UserGenreUpdateRequest;
@@ -36,17 +37,13 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
     @Override
     @Transactional
     public void updateUserGenre(UserGenreUpdateRequest request, StreamObserver<UserResponse> responseObserver) {
-        this.userRepository.findByLogin(request.getLoginId())
-                .subscribeOn(Schedulers.boundedElastic())
+        userRepository.findByLogin(request.getLoginId())
                 .map(user -> {
-                    this.userRepository.deleteByLoginAndGenre(user.getLogin(), user.getGenre()) // TBD --> not working
-                            .map(user1 -> {
-                                user.setGenre(request.getGenre().toString());
-                                return user;
-                            })
-                            .then(this.userRepository.save(user));
+                    user.setGenre(request.getGenre().toString());
                     return user;
                 })
+                .doOnNext(user -> userRepository.deleteByLogin(user.getLogin())) // delete not working
+                .flatMap(userRepository::save)
                 .map(user -> UserResponse.newBuilder()
                         .setName(user.getName())
                         .setLoginId(user.getLogin())
