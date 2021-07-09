@@ -11,20 +11,18 @@ import com.movieservice.grpcflix.user.UserServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import javax.transaction.Transactional;
 
 @GrpcService
 public class UserService extends UserServiceGrpc.UserServiceImplBase {
-
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
 
     @Override
     public void getUserGenre(UserSearchRequest request, StreamObserver<UserResponse> responseObserver) {
-        this.userRepository.findByLogin(request.getLoginId())
+        userRepository.selectUserByLogin(request.getLoginId())
                 .subscribeOn(Schedulers.boundedElastic())
                 .map(user -> UserResponse.newBuilder()
                         .setName(user.getName())
@@ -37,13 +35,14 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
     @Override
     @Transactional
     public void updateUserGenre(UserGenreUpdateRequest request, StreamObserver<UserResponse> responseObserver) {
-        userRepository.findByLogin(request.getLoginId())
+        userRepository.selectUserByLogin(request.getLoginId())
+                .subscribeOn(Schedulers.boundedElastic())
                 .map(user -> {
                     user.setGenre(request.getGenre().toString());
                     return user;
                 })
-                .doOnNext(user -> userRepository.deleteByLogin(user.getLogin())) // delete not working
-                .flatMap(userRepository::save)
+                .flatMap(user -> userRepository.deleteByLogin(request.getLoginId())
+                        .then(userRepository.saveUser(user)))
                 .map(user -> UserResponse.newBuilder()
                         .setName(user.getName())
                         .setLoginId(user.getLogin())
