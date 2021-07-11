@@ -1,7 +1,6 @@
 package com.grpcflix.user.service;
 
-//import com.grpcflix.user.entity.UserPrimaryKey;
-
+import com.grpcflix.user.entity.User;
 import com.grpcflix.user.repository.UserRepository;
 import com.movieservice.grpcflix.common.Genre;
 import com.movieservice.grpcflix.user.UserGenreUpdateRequest;
@@ -11,7 +10,9 @@ import com.movieservice.grpcflix.user.UserServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import com.grpcflix.user.exception.*;
 
 import javax.transaction.Transactional;
 
@@ -24,6 +25,7 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
     public void getUserGenre(UserSearchRequest request, StreamObserver<UserResponse> responseObserver) {
         userRepository.selectUserByLogin(request.getLoginId())
                 .subscribeOn(Schedulers.boundedElastic())
+                .switchIfEmpty(userNotFound(request, responseObserver))
                 .map(user -> UserResponse.newBuilder()
                         .setName(user.getName())
                         .setLoginId(user.getLogin())
@@ -49,5 +51,11 @@ public class UserService extends UserServiceGrpc.UserServiceImplBase {
                         .setGenre(Genre.valueOf(user.getGenre().toUpperCase()))
                         .build())
                 .subscribe(responseObserver::onNext, responseObserver::onError, responseObserver::onCompleted);
+    }
+
+    private Mono<User> userNotFound(UserSearchRequest request, StreamObserver<UserResponse> responseObserver) {
+        return Mono.error(() -> {
+            throw new UserNotFoundException(request.getLoginId(), "user not found");
+        });
     }
 }

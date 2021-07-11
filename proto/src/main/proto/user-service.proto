@@ -19,6 +19,15 @@ message UserGenreUpdateRequest{
   Genre genre = 2;
 }
 
+enum ErrorMessage{
+  USER_NOT_FOUND = 0;
+}
+
+message UserResponseError{
+  ErrorMessage error_message = 1;
+  string login_id = 2;
+}
+
 service UserService{
   rpc getUserGenre(UserSearchRequest) returns (UserResponse);
   rpc updateUserGenre(UserGenreUpdateRequest) returns (UserResponse);
