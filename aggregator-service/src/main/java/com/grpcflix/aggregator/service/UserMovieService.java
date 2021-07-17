@@ -36,15 +36,13 @@ public class UserMovieService {
                 .stream()
                 .map(movieDto -> new RecommendedMovie(movieDto.getTitle(), movieDto.getYear(), movieDto.getRating()))
                 .collect(Collectors.toList());
-
     }
 
-    public void setUserGenre(UserGenre userGenre){
+    public UserResponse setUserGenre(UserGenre userGenre) {
         UserGenreUpdateRequest userGenreUpdateRequest = UserGenreUpdateRequest.newBuilder()
                 .setLoginId(userGenre.getLoginId())
                 .setGenre(Genre.valueOf(userGenre.getGenre().toUpperCase()))
                 .build();
-        UserResponse userResponse = this.userStub.updateUserGenre(userGenreUpdateRequest);
+        return this.userStub.updateUserGenre(userGenreUpdateRequest);
     }
-
 }
