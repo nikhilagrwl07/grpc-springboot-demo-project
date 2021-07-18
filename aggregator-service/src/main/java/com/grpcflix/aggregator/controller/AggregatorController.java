@@ -2,31 +2,31 @@ package com.grpcflix.aggregator.controller;
 
 import com.grpcflix.aggregator.dto.RecommendedMovie;
 import com.grpcflix.aggregator.dto.UserGenre;
+import com.grpcflix.aggregator.dto.UserResponse;
 import com.grpcflix.aggregator.exception.BadRequestException;
-import com.grpcflix.aggregator.service.UserMovieService;
-import com.movieservice.grpcflix.user.UserResponse;
+import com.grpcflix.aggregator.service.AggregatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/aggregator-service")
 public class AggregatorController {
 
     @Autowired
-    private UserMovieService userMovieService;
+    private AggregatorService aggregatorService;
 
     @GetMapping("/user/{loginId}")
-    public List<RecommendedMovie> getMoviesByLoginId(@PathVariable String loginId) {
-        return this.userMovieService.getUserMovieSuggestions(loginId);
+    public Flux<RecommendedMovie> getMoviesByLoginId(@PathVariable String loginId) {
+        return this.aggregatorService.getUserMovieSuggestions(loginId);
     }
 
     @PutMapping("/user/{loginId}")
-    public UserResponse setUserGenre(@RequestBody UserGenre userGenre, @PathVariable String loginId) throws BadRequestException {
-        if(loginId!=userGenre.getLoginId())
-            throw new BadRequestException("Login Id does not match");
+    public Mono<UserResponse> setUserGenre(@RequestBody UserGenre userGenre, @PathVariable String loginId) throws BadRequestException {
+        if(!loginId.equals(userGenre.getLoginId()))
+            throw new BadRequestException("Login Id does not match"); // TODO: Use mono's exception
 
-        return this.userMovieService.setUserGenre(userGenre);
+        return this.aggregatorService.setUserGenre(userGenre);
     }
 }

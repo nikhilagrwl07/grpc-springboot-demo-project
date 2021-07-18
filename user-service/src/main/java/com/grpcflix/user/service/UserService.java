@@ -10,52 +10,37 @@ import com.movieservice.grpcflix.user.UserServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import com.grpcflix.user.exception.*;
-
-import javax.transaction.Transactional;
 
 @GrpcService
 public class UserService extends UserServiceGrpc.UserServiceImplBase {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    ModelToViewMapper modelToViewMapper;
+
     @Override
     public void getUserGenre(UserSearchRequest request, StreamObserver<UserResponse> responseObserver) {
         userRepository.selectUserByLogin(request.getLoginId())
                 .subscribeOn(Schedulers.boundedElastic())
-                .switchIfEmpty(userNotFound(request, responseObserver))
-                .map(user -> UserResponse.newBuilder()
-                        .setName(user.getName())
-                        .setLoginId(user.getLogin())
-                        .setGenre(Genre.valueOf(user.getGenre().toUpperCase()))
-                        .build())
+                .defaultIfEmpty(new User(request.getLoginId(), Genre.ACTION.toString(), ""))
+                .map(user -> modelToViewMapper.convertUserToUserResponse(user))
                 .subscribe(responseObserver::onNext, responseObserver::onError, responseObserver::onCompleted);
+
     }
 
     @Override
-    @Transactional
     public void updateUserGenre(UserGenreUpdateRequest request, StreamObserver<UserResponse> responseObserver) {
         userRepository.selectUserByLogin(request.getLoginId())
                 .subscribeOn(Schedulers.boundedElastic())
+                .defaultIfEmpty(new User(request.getLoginId(), request.getGenre().toString(), ""))
                 .map(user -> {
                     user.setGenre(request.getGenre().toString());
                     return user;
                 })
-                .flatMap(user -> userRepository.deleteByLogin(request.getLoginId())
-                        .then(userRepository.saveUser(user)))
-                .map(user -> UserResponse.newBuilder()
-                        .setName(user.getName())
-                        .setLoginId(user.getLogin())
-                        .setGenre(Genre.valueOf(user.getGenre().toUpperCase()))
-                        .build())
+                .flatMap(user -> userRepository.updateUser(user))
+                .map(user -> modelToViewMapper.convertUserToUserResponse(user))
                 .subscribe(responseObserver::onNext, responseObserver::onError, responseObserver::onCompleted);
-    }
-
-    private Mono<User> userNotFound(UserSearchRequest request, StreamObserver<UserResponse> responseObserver) {
-        return Mono.error(() -> {
-            throw new UserNotFoundException(request.getLoginId(), "user not found");
-        });
     }
 }

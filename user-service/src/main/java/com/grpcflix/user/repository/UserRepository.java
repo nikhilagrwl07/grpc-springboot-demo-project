@@ -7,6 +7,8 @@ import org.springframework.data.cassandra.core.query.Query;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+import javax.transaction.Transactional;
+
 import static org.springframework.data.cassandra.core.query.Criteria.where;
 
 @Repository
@@ -31,5 +33,10 @@ public class UserRepository {
 
     public Mono<Void> deleteAllUser() {
         return cassandraTemplate.truncate(User.class);
+    }
+
+    @Transactional
+    public Mono<User> updateUser(User user){
+        return deleteByLogin(user.getLogin()).then(saveUser(user));
     }
 }

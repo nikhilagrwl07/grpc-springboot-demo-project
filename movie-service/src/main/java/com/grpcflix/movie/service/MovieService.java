@@ -1,5 +1,6 @@
 package com.grpcflix.movie.service;
 
+import com.grpcflix.movie.entity.Movie;
 import com.grpcflix.movie.repository.MovieRepository;
 import com.movieservice.grpcflix.movie.MovieDto;
 import com.movieservice.grpcflix.movie.MovieSearchRequest;
@@ -21,6 +22,7 @@ public class MovieService extends MovieServiceGrpc.MovieServiceImplBase {
     public void getMovies(MovieSearchRequest request, StreamObserver<MovieSearchResponse> responseObserver) {
         this.repository.getMovieByGenreOrderByYearDesc(request.getGenre().toString())
                 .subscribeOn(Schedulers.boundedElastic())
+                .defaultIfEmpty(new Movie("", 0, 0, 0.0, ""))
                 .map(movie -> MovieDto.newBuilder()
                         .setTitle(movie.getTitle())
                         .setYear(movie.getYear())

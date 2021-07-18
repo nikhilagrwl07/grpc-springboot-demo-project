@@ -2,6 +2,7 @@ package com.grpcflix.aggregator.service;
 
 import com.grpcflix.aggregator.dto.RecommendedMovie;
 import com.grpcflix.aggregator.dto.UserGenre;
+import com.grpcflix.aggregator.exception.NoMovieFoundException;
 import com.movieservice.grpcflix.common.Genre;
 import com.movieservice.grpcflix.movie.MovieSearchRequest;
 import com.movieservice.grpcflix.movie.MovieSearchResponse;
@@ -12,12 +13,13 @@ import com.movieservice.grpcflix.user.UserSearchRequest;
 import com.movieservice.grpcflix.user.UserServiceGrpc;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import static com.grpcflix.aggregator.dto.UserResponse.*;
 
 @Service
-public class UserMovieService {
+public class AggregatorService {
 
     @GrpcClient("user-service")
     private UserServiceGrpc.UserServiceBlockingStub userStub;
@@ -25,24 +27,37 @@ public class UserMovieService {
     @GrpcClient("movie-service")
     private MovieServiceGrpc.MovieServiceBlockingStub movieStub;
 
-    public List<RecommendedMovie> getUserMovieSuggestions(String loginId) {
+    public Flux<RecommendedMovie> getUserMovieSuggestions(String loginId) {
         UserSearchRequest userSearchRequest = UserSearchRequest.newBuilder().setLoginId(loginId).build();
         UserResponse userResponse = this.userStub.getUserGenre(userSearchRequest);
 
         MovieSearchRequest movieSearchRequest = MovieSearchRequest.newBuilder().setGenre(userResponse.getGenre()).build();
         MovieSearchResponse movieSearchResponse = this.movieStub.getMovies(movieSearchRequest);
 
-        return movieSearchResponse.getMovieList()
-                .stream()
-                .map(movieDto -> new RecommendedMovie(movieDto.getTitle(), movieDto.getYear(), movieDto.getRating()))
-                .collect(Collectors.toList());
+        return Flux.fromIterable(movieSearchResponse.getMovieList())
+                .map(movieDto -> {
+                    if (movieDto.getTitle().isEmpty() && movieDto.getYear() == 0) { // TODO:: Use Mono's exception
+                        throw new NoMovieFoundException("Movie with given genre not found!");
+                    }
+                    return movieDto;
+                })
+                .map(movieDto -> RecommendedMovie.builder()
+                        .title(movieDto.getTitle())
+                        .year(movieDto.getYear())
+                        .rating(movieDto.getRating())
+                        .build());
     }
 
-    public UserResponse setUserGenre(UserGenre userGenre) {
+    public Mono<com.grpcflix.aggregator.dto.UserResponse> setUserGenre(UserGenre userGenre) {
         UserGenreUpdateRequest userGenreUpdateRequest = UserGenreUpdateRequest.newBuilder()
                 .setLoginId(userGenre.getLoginId())
                 .setGenre(Genre.valueOf(userGenre.getGenre().toUpperCase()))
                 .build();
-        return this.userStub.updateUserGenre(userGenreUpdateRequest);
+        return Mono.just(this.userStub.updateUserGenre(userGenreUpdateRequest))
+                .map(userResponse -> builder()
+                        .name(userResponse.getName())
+                        .genre(userResponse.getGenre().toString())
+                        .loginId(userResponse.getLoginId())
+                        .build());
     }
 }
