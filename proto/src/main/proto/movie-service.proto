@@ -4,7 +4,7 @@ option java_multiple_files = true;
 option java_package = "com.movieservice.grpcflix.movie";
 import "common/common.proto";
 
-message MovieDto{
+message MovieSearchResponse{
  string title = 1;
  int32 year = 2;
  double rating = 3;
@@ -14,10 +14,8 @@ message MovieSearchRequest{
   Genre genre = 1;
 }
 
-message MovieSearchResponse{
-  repeated MovieDto movie = 1;
-}
-
 service MovieService{
-  rpc getMovies(MovieSearchRequest) returns (MovieSearchResponse);
+
+  // streaming server
+  rpc getMovies(MovieSearchRequest) returns (stream MovieSearchResponse);
 }

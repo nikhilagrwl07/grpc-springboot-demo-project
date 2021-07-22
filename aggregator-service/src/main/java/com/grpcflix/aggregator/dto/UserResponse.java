@@ -1,11 +1,12 @@
 package com.grpcflix.aggregator.dto;
 
+import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
 
-
-@SuperBuilder
+@Builder
 @Data
-public class UserResponse extends UserGenre{
+public class UserResponse {
     public String name;
+    public String loginId;
+    public String genre;
 }

@@ -8,7 +8,7 @@ message UserSearchRequest{
   string login_id = 1;
 }
 
-message UserResponse{
+message UserSearchResponse{
   string login_id = 1;
   string name = 2;
   Genre genre = 3;
@@ -29,6 +29,6 @@ message UserResponseError{
 }
 
 service UserService{
-  rpc getUserGenre(UserSearchRequest) returns (UserResponse);
-  rpc updateUserGenre(UserGenreUpdateRequest) returns (UserResponse);
+  rpc getUserGenre(UserSearchRequest) returns (UserSearchResponse) {};
+  rpc updateUserGenre(UserGenreUpdateRequest) returns (UserSearchResponse) {};
 }
