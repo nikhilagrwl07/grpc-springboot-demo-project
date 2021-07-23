@@ -10,3 +10,18 @@ enum Genre{
   CRIME = 2;
   WESTERN = 3;
 }
+
+enum ErrorMessage{
+  USER_NOT_FOUND = 0;
+}
+
+enum Channel{
+  WEB = 0;
+  MOBILE = 1;
+  TABLET = 2;
+}
+
+enum StreamingResponseStatus{
+  ACK = 0;
+  FAILED = 1;
+}

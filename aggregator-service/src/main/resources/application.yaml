@@ -6,3 +6,6 @@ grpc:
     movie-service:
       address: static://localhost:7575
       negotiationType: plaintext
+    audit-service:
+      address: static://localhost:8585
+      negotiationType: plaintext

@@ -9,6 +9,7 @@
 		<module>movie-service</module>
 		<module>aggregator-service</module>
         <module>aggregator-client</module>
+        <module>audit-service</module>
     </modules>
     <parent>
 		<groupId>org.springframework.boot</groupId>

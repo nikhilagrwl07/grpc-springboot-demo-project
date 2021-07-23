@@ -17,5 +17,5 @@ message MovieSearchRequest{
 service MovieService{
 
   // streaming server
-  rpc getMovies(MovieSearchRequest) returns (stream MovieSearchResponse);
+  rpc getMovies(MovieSearchRequest) returns (stream MovieSearchResponse) {};
 }

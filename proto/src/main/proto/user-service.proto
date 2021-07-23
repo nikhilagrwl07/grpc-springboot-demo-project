@@ -3,6 +3,7 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "com.movieservice.grpcflix.user";
 import "common/common.proto";
+import "google/protobuf/timestamp.proto";
 
 message UserSearchRequest{
   string login_id = 1;
@@ -19,16 +20,14 @@ message UserGenreUpdateRequest{
   Genre genre = 2;
 }
 
-enum ErrorMessage{
-  USER_NOT_FOUND = 0;
-}
-
 message UserResponseError{
   ErrorMessage error_message = 1;
   string login_id = 2;
 }
 
 service UserService{
+  // unary
   rpc getUserGenre(UserSearchRequest) returns (UserSearchResponse) {};
   rpc updateUserGenre(UserGenreUpdateRequest) returns (UserSearchResponse) {};
+
 }

@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.movieservice.grpcflix.audit";
+import "common/common.proto";
+import "google/protobuf/timestamp.proto";
+
+message UserDetail{
+  string login_id = 1;
+  string name = 2;
+}
+
+message MovieDetail{
+  string title = 1;
+}
+
+message MediaStreamingDetail{
+  UserDetail user_detail = 1;
+  MovieDetail movie_detail = 2;
+  Channel channel = 3;
+  google.protobuf.Timestamp current_timestamp = 4;
+  double rating = 5;
+}
+
+message MediaStreamingResponse{
+  StreamingResponseStatus streaming_response_status = 1;
+}
+
+service AuditService{
+  // streaming client
+  rpc sendMediaStreamingDetail(stream MediaStreamingDetail) returns (MediaStreamingResponse) {};
+}
