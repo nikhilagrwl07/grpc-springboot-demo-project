@@ -11,8 +11,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.util.List;
 
-import static com.grpcflix.client.constants.AggregatorAppConstants.GET_RECOMMENDED_MOVIE_BY_LOGIN_ID;
-import static com.grpcflix.client.constants.AggregatorAppConstants.SET_MOVIE_GENRE_BY_LOGIN_ID;
+import static com.grpcflix.client.constants.AggregatorClientConstants.GET_RECOMMENDED_MOVIE_BY_LOGIN_ID;
+import static com.grpcflix.client.constants.AggregatorClientConstants.SET_MOVIE_GENRE_BY_LOGIN_ID;
 
 @Slf4j
 public class AggregatorRestClientRepository {

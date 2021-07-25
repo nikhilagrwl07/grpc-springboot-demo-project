@@ -26,8 +26,10 @@ message UserResponseError{
 }
 
 service UserService{
-  // unary
+  // unary with deadline
   rpc getUserGenre(UserSearchRequest) returns (UserSearchResponse) {};
+
+  // unary
   rpc updateUserGenre(UserGenreUpdateRequest) returns (UserSearchResponse) {};
 
 }

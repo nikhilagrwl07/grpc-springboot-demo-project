@@ -16,6 +16,9 @@ import com.movieservice.grpcflix.user.UserGenreUpdateRequest;
 import com.movieservice.grpcflix.user.UserSearchRequest;
 import com.movieservice.grpcflix.user.UserSearchResponse;
 import com.movieservice.grpcflix.user.UserServiceGrpc;
+import io.grpc.Deadline;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -31,6 +34,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static constants.AggregatorServiceConstants.ALLOWED_DEADLINE_FOR_USER_SERVICE;
+
 
 @Slf4j
 @Service
@@ -45,13 +50,27 @@ public class AggregatorService {
     @GrpcClient("audit-service")
     private AuditServiceGrpc.AuditServiceStub auditSyncClient;
 
+
     @Autowired
     private RequestMapper requestMapper;
 
     public Flux<RecommendedMovie> getUserMovieSuggestions(String loginId) {
         UserSearchRequest userSearchRequest = UserSearchRequest.newBuilder().setLoginId(loginId).build();
-        UserSearchResponse userResponse = this.userStub.getUserGenre(userSearchRequest);
-
+        UserSearchResponse userResponse = null;
+        try {
+            log.info("Sending request with deadline of - {} ", ALLOWED_DEADLINE_FOR_USER_SERVICE);
+            userResponse = this.userStub.withDeadline(
+                    Deadline.after(ALLOWED_DEADLINE_FOR_USER_SERVICE, TimeUnit.MILLISECONDS))
+                    .getUserGenre(userSearchRequest);
+            log.info("User response  - {} ", userResponse.toString());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus() == Status.DEADLINE_EXCEEDED) {
+                log.error("Deadline has exceeded !. Client no longer wait for response from server!");
+            } else {
+                log.error("Error : {} ", e.getMessage());
+            }
+            return Flux.error(new RuntimeException(e.getMessage()));
+        }
         MovieSearchRequest movieSearchRequest = MovieSearchRequest.newBuilder().setGenre(userResponse.getGenre()).build();
         Iterator<MovieSearchResponse> movieSearchResponses = this.movieStub.getMovies(movieSearchRequest);
         List<RecommendedMovie> result = new ArrayList<>();
@@ -73,12 +92,17 @@ public class AggregatorService {
                 .setLoginId(userGenre.getLoginId())
                 .setGenre(Genre.valueOf(userGenre.getGenre().toUpperCase()))
                 .build();
-        return Mono.just(this.userStub.updateUserGenre(userGenreUpdateRequest))
-                .map(userResponse -> UserResponse.builder()
-                        .name(userResponse.getName())
-                        .genre(userResponse.getGenre().toString())
-                        .loginId(userResponse.getLoginId())
-                        .build());
+        try {
+            UserSearchResponse userResponse = this.userStub.updateUserGenre(userGenreUpdateRequest);
+            return Mono.just(UserResponse.builder()
+                    .name(userResponse.getName())
+                    .genre(userResponse.getGenre().toString())
+                    .loginId(userResponse.getLoginId())
+                    .build());
+        } catch (StatusRuntimeException e) {
+            log.error("Error occurred - {} ", e.getMessage());
+            return Mono.error(new RuntimeException(e.getMessage()));
+        }
     }
 
     public Mono<com.grpcflix.aggregator.dto.MediaStreamingResponse> sendAuditDetails(List<com.grpcflix.aggregator.dto.MediaStreamingRequest> mediaStreamingRequests) {
@@ -114,7 +138,7 @@ public class AggregatorService {
                 .doOnComplete(() -> {
                     requestObserver.onCompleted();
                     try {
-                        latch.await(3L, TimeUnit.SECONDS);
+                        latch.await(3L, TimeUnit.SECONDS);   // for waiting for server's response
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
