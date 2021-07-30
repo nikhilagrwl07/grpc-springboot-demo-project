@@ -37,6 +37,6 @@ public class UserRepository {
 
     @Transactional
     public Mono<User> updateUser(User user){
-        return deleteByLogin(user.getLogin()).then(saveUser(user));
+        return cassandraTemplate.update(user);
     }
 }
